@@ -12,6 +12,7 @@ from omniforensix.plugins.android.whatsapp import AndroidWhatsAppPlugin
 
 
 def _build_sample_msgstore_bytes(tmp_path: Path) -> bytes:
+    tmp_path.mkdir(parents=True, exist_ok=True)
     db_file = tmp_path / "raw_msgstore.db"
     conn = sqlite3.connect(db_file)
     conn.execute("CREATE TABLE jid (_id INTEGER PRIMARY KEY, raw_string TEXT);")
@@ -33,14 +34,15 @@ def _build_sample_msgstore_bytes(tmp_path: Path) -> bytes:
     )
     conn.commit()
     conn.close()
-    return db_file.read_bytes()
+    data = db_file.read_bytes()
+    db_file.unlink()
+    return data
 
 
 def test_decrypt_whatsapp_crypt14_with_158_byte_key_file(tmp_path: Path) -> None:
     sqlite_bytes = _build_sample_msgstore_bytes(tmp_path)
     aes_key = bytes.fromhex("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
 
-    # Build a synthetic 158-byte Android WhatsApp key file (bytes 126..158 hold the 32-byte key)
     key_file = tmp_path / "key"
     key_file.write_bytes((b"\x00" * 126) + aes_key)
 
