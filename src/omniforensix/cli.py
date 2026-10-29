@@ -14,6 +14,7 @@ from rich.table import Table
 from omniforensix.analyzers.exif_carver import analyze_media_and_signatures, scan_sqlite_deleted_records
 from omniforensix.analyzers.ioc_engine import IoCMatch, load_ioc_watchlist, scan_artifacts_for_iocs
 from omniforensix.core.case import ForensicCase
+from omniforensix.core.crypto_decryptor import auto_decrypt_workspace_databases, decrypt_whatsapp_crypt_file
 from omniforensix.core.hashing import build_directory_manifest
 from omniforensix.core.ingestion import ingest_evidence_source
 from omniforensix.plugins.base import ArtifactRecord, OSType, get_registered_plugins
@@ -53,6 +54,7 @@ def cmd_ingest(
     case = ForensicCase(case_dir=case_dir, case_id=case_id, case_name=case_name, examiner=examiner)
     case.record_initial_evidence(evidence_path)
     ingested = ingest_evidence_source(evidence_path, case.workspace_dir)
+    decrypted_dbs = auto_decrypt_workspace_databases(case.workspace_dir)
     case.log_custody_event(
         action="WORKSPACE_INGESTED",
         target_path=str(case.workspace_dir),
@@ -60,6 +62,19 @@ def cmd_ingest(
     )
     console.print(f"[green]Ingested {len(ingested)} files into {case.workspace_dir}[/green]")
 
+
+@app.command("decrypt")
+def cmd_decrypt(
+    crypt_file: Path = typer.Argument(..., exists=True, help="Path to .db.crypt14 or .db.crypt15 file"),
+    key_source: str = typer.Option(..., "--key", "-k", help="Path to 158-byte key file or 64-digit hex key"),
+    output_db: Optional[Path] = typer.Option(None, "--output", "-o", help="Output decrypted .db path"),
+) -> None:
+    """Decrypt an Android WhatsApp .db.crypt14 or .db.crypt15 database using an authorized key file or 64-digit hex key."""
+    res = decrypt_whatsapp_crypt_file(crypt_file, key_source, output_db)
+    console.print(
+        f"[green]Decrypted {res.encrypted_source} -> {res.decrypted_target} "
+        f"({res.decrypted_size_bytes} bytes, {res.cipher_scheme})[/green]"
+    )
 
 @app.command("parse")
 def cmd_parse(
