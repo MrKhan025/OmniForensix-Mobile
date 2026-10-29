@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 from jinja2 import Template
 
 from omniforensix.analyzers.exif_carver import MediaForensicFinding
