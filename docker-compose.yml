@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  omniforensix:
+    build: .
+    image: omniforensix-mobile:latest
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./sample_evidence:/evidence:ro
+      - ./case_output:/output:rw
+    ports:
+      - "8080:8080"
+    command: ["serve", "--case-dir", "/output", "--host", "0.0.0.0", "--port", "8080"]
