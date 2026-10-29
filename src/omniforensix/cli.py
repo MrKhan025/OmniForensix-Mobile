@@ -20,7 +20,6 @@ from omniforensix.core.ingestion import ingest_evidence_source
 from omniforensix.plugins.base import ArtifactRecord, OSType, get_registered_plugins
 from omniforensix.reporting.html_generator import generate_html_report
 from omniforensix.timeline.builder import (
-    TimelineEvent,
     build_super_timeline,
     export_timeline_csv,
     export_timeline_jsonl,
@@ -58,7 +57,7 @@ def cmd_ingest(
     case.log_custody_event(
         action="WORKSPACE_INGESTED",
         target_path=str(case.workspace_dir),
-        details={"ingested_file_count": len(ingested)},
+        details={"ingested_file_count": len(ingested), "decrypted_db_count": len(decrypted_dbs)},
     )
     console.print(f"[green]Ingested {len(ingested)} files into {case.workspace_dir}[/green]")
 
