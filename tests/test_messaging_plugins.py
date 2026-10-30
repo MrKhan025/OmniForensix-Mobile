@@ -1,6 +1,7 @@
 """Unit tests for WhatsApp (Android & iOS), Telegram, and Signal forensic parsers."""
 
 from pathlib import Path
+from urllib.parse import urlparse
 from omniforensix.plugins.android.signal_backup import SignalBackupPlugin
 from omniforensix.plugins.android.telegram import TelegramCachePlugin
 from omniforensix.plugins.android.whatsapp import AndroidWhatsAppPlugin
@@ -19,14 +20,16 @@ def test_ios_whatsapp_chatstorage(synthetic_evidence_dir: Path) -> None:
     records = IosWhatsAppPlugin().run(synthetic_evidence_dir)
     assert len(records) == 1
     assert records[0].attributes["partner_name"] == "Alice Witness"
-    assert "Encrypted drop coordinates" in records[0].attributes["body"]
+    assert records[0].attributes["body"] == "Encrypted drop coordinates attached"
 
 
 def test_telegram_cache4_parser(synthetic_evidence_dir: Path) -> None:
     records = TelegramCachePlugin().run(synthetic_evidence_dir)
     assert len(records) == 1
     assert records[0].attributes["peer_name"] == "Telegram Handler"
-    assert "c2-stalker-sync.net" in records[0].attributes["body"]
+    extracted_url = str(records[0].attributes["body"]).strip()
+    assert extracted_url == "https://c2.example.com/payload"
+    assert urlparse(extracted_url).hostname == "c2.example.com"
 
 
 def test_signal_decrypted_backup_parser(synthetic_evidence_dir: Path) -> None:

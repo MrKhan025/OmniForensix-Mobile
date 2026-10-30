@@ -36,7 +36,7 @@ def synthetic_evidence_dir(tmp_path: Path) -> Path:
     )
     conn.execute(
         "INSERT INTO sms VALUES (1, 10, '+15550199', 1700000000000, 1700000000000, 1, 1, "
-        "'Urgent alert: http://verify-bank-alert.top/login', '+15550000');"
+        "'Urgent alert: https://phishing.example.org/login', '+15550000');"
     )
     conn.commit()
     conn.close()
@@ -76,7 +76,7 @@ def synthetic_evidence_dir(tmp_path: Path) -> Path:
     )
     # 13344480000000000 WebKit microseconds == 2023-11-14T22:13:20Z
     conn.execute(
-        "INSERT INTO urls VALUES (1, 'https://c2-stalker-sync.net/beacon', 'Sync Portal', 3, 0, 13344480000000000);"
+        "INSERT INTO urls VALUES (1, 'https://c2.example.com/beacon', 'Sync Portal', 3, 0, 13344480000000000);"
     )
     conn.commit()
     conn.close()
@@ -234,7 +234,7 @@ def synthetic_evidence_dir(tmp_path: Path) -> Path:
     )
     conn.execute("INSERT INTO users VALUES (777000, 'Telegram Handler', 1);")
     conn.execute(
-        "INSERT INTO messages_v2 VALUES (501, 777000, 1700002000, 0, 1, X'000068747470733a2f2f63322d7374616c6b65722d73796e632e6e65742f7061796c6f616400');"
+        "INSERT INTO messages_v2 VALUES (501, 777000, 1700002000, 0, 1, X'000068747470733a2f2f63322e6578616d706c652e636f6d2f7061796c6f616400');"
     )
     conn.commit()
     conn.close()

@@ -11,7 +11,7 @@ def test_android_sms_mms_parser(synthetic_evidence_dir: Path) -> None:
     records = AndroidSmsMmsPlugin().run(synthetic_evidence_dir)
     assert len(records) == 1
     assert records[0].attributes["address"] == "+15550199"
-    assert "verify-bank-alert.top" in records[0].attributes["body"]
+    assert records[0].attributes["body"] == "Urgent alert: https://phishing.example.org/login"
 
 
 def test_android_calls_contacts_parser(synthetic_evidence_dir: Path) -> None:
@@ -24,7 +24,8 @@ def test_android_calls_contacts_parser(synthetic_evidence_dir: Path) -> None:
 def test_android_chrome_history_parser(synthetic_evidence_dir: Path) -> None:
     records = AndroidChromeHistoryPlugin().run(synthetic_evidence_dir)
     assert len(records) == 1
-    assert records[0].attributes["domain"] == "c2-stalker-sync.net"
+    assert records[0].attributes["domain"] == "c2.example.com"
+    assert records[0].attributes["url"] == "https://c2.example.com/beacon"
 
 
 def test_android_packages_xml_parser(synthetic_evidence_dir: Path) -> None:
