@@ -18,7 +18,7 @@ class SecurityTraversalError(Exception):
 def _validate_target_path(destination_dir: Path, target_path: Path) -> Path:
     resolved_dest = destination_dir.resolve()
     resolved_target = target_path.resolve()
-    if not str(resolved_target).startswith(str(resolved_dest)):
+    if not resolved_target.is_relative_to(resolved_dest):
         raise SecurityTraversalError(
             f"Blocked path traversal attempt outside workspace: {target_path}"
         )
