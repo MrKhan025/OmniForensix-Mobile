@@ -1,8 +1,8 @@
 feed_name: "OmniForensix Mobile Threat Intelligence Feed"
 malicious_domains:
-  - "c2-stalker-sync.net"
-  - "mspy-update-portal.org"
-  - "verify-bank-alert.top"
+  - "c2.example.com"
+  - "tracker.example.net"
+  - "phishing.example.org"
 malicious_ips:
   - "198.51.100.214"
   - "203.0.113.88"
@@ -12,4 +12,4 @@ stalkerware_packages:
   - "com.cerberus.stealth"
   - "org.stalkerware.hiddenagent"
 malicious_sha256:
-  - "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855_bad"
+  - "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
