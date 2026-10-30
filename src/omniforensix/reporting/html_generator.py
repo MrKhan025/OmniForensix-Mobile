@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 
 from omniforensix.analyzers.exif_carver import MediaForensicFinding
 from omniforensix.analyzers.ioc_engine import IoCMatch
 from omniforensix.plugins.base import ArtifactRecord
 from omniforensix.timeline.builder import TimelineEvent
 
-HTML_TEMPLATE = Template(
+_JINJA_ENV = Environment(autoescape=select_autoescape(default=True, default_for_string=True))
+HTML_TEMPLATE = _JINJA_ENV.from_string(
     """<!DOCTYPE html>
 <html lang="en">
 <head>
