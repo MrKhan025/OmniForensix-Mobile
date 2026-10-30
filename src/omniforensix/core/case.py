@@ -9,7 +9,14 @@ from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
 
-from omniforensix.core.hashing import FileHashDigest, compute_file_hashes, build_directory_manifest
+from omniforensix.core.hashing import FileHashDigest, build_directory_manifest, compute_file_hashes
+
+
+def _dump_model(model: Any) -> dict[str, Any]:
+    if hasattr(model, "model_dump"):
+        res: dict[str, Any] = model.model_dump(mode="json")
+        return res
+    return dict(model.dict())
 
 
 class ChainOfCustodyEntry(BaseModel):
@@ -56,34 +63,53 @@ class ForensicCase:
         self.case_name = case_name
         self.examiner = examiner
 
-    def log_custody_event(self, action: str, target_path: str, details: dict[str, Any] | None = None) -> ChainOfCustodyEntry:
+    def log_custody_event(
+        self,
+        action: str,
+        target_path: str,
+        details: dict[str, Any] | None = None,
+    ) -> ChainOfCustodyEntry:
         """Append a cryptographically linked event to chain_of_custody.jsonl."""
         prev_hash = "0" * 64
         seq = 1
 
         if self.coc_file.exists():
-            lines = [line.strip() for line in self.coc_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+            lines = [
+                line.strip()
+                for line in self.coc_file.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
             if lines:
                 last_obj = json.loads(lines[-1])
                 prev_hash = str(last_obj["entry_hash"])
                 seq = int(last_obj["sequence"]) + 1
 
         now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        payload = {
+        safe_details: dict[str, Any] = details if details is not None else {}
+        payload: dict[str, Any] = {
             "sequence": seq,
             "timestamp_utc": now_utc,
             "examiner": self.examiner,
             "action": action,
             "target_path": target_path,
-            "details": details or {},
+            "details": safe_details,
             "previous_entry_hash": prev_hash,
         }
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         entry_hash = hashlib.sha256(canonical).hexdigest()
 
-        entry = ChainOfCustodyEntry(**payload, entry_hash=entry_hash)
+        entry = ChainOfCustodyEntry(
+            sequence=seq,
+            timestamp_utc=now_utc,
+            examiner=self.examiner,
+            action=action,
+            target_path=target_path,
+            details=safe_details,
+            previous_entry_hash=prev_hash,
+            entry_hash=entry_hash,
+        )
         with self.coc_file.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(entry.dict() if hasattr(entry, "dict") else entry.model_dump()) + "\n")
+            fh.write(json.dumps(_dump_model(entry)) + "\n")
         return entry
 
     def verify_custody_chain(self) -> tuple[bool, list[str]]:
@@ -93,7 +119,11 @@ class ForensicCase:
 
         errors: list[str] = []
         prev_hash = "0" * 64
-        lines = [line.strip() for line in self.coc_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+        lines = [
+            line.strip()
+            for line in self.coc_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
 
         for idx, line in enumerate(lines, start=1):
             data = json.loads(line)
@@ -127,10 +157,13 @@ class ForensicCase:
             extracted_workspace_path=str(self.workspace_dir),
             evidence_digests=[d.to_dict() for d in digests],
         )
-        self.case_file.write_text(json.dumps(meta.dict() if hasattr(meta, "dict") else meta.model_dump(), indent=2), encoding="utf-8")
+        self.case_file.write_text(json.dumps(_dump_model(meta), indent=2), encoding="utf-8")
         self.log_custody_event(
             action="EVIDENCE_HASH_SEALED",
             target_path=str(source_path),
-            details={"file_count": len(digests), "primary_sha256": digests[0].sha256 if digests else ""},
+            details={
+                "file_count": len(digests),
+                "primary_sha256": digests[0].sha256 if digests else "",
+            },
         )
         return digests
