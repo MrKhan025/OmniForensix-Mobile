@@ -5,6 +5,7 @@
 **Open-Source Cross-Platform Mobile Digital Forensics & Post-Acquisition Artifact Analysis Toolkit (Android & iOS)**
 
 [![OmniForensix CI](https://github.com/MrKhan025/OmniForensix-Mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/MrKhan025/OmniForensix-Mobile/actions/workflows/ci.yml)
+[![CodeQL Security](https://github.com/MrKhan025/OmniForensix-Mobile/actions/workflows/codeql.yml/badge.svg)](https://github.com/MrKhan025/OmniForensix-Mobile/actions/workflows/codeql.yml)
 [![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-22c55e.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Code Style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)

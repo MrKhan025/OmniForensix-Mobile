@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "omniforensix"
-version = "1.3.0"
+version = "1.4.0"
 description = "Open-source cross-platform mobile digital forensics and post-acquisition artifact analysis toolkit for Android and iOS."
 readme = "README.md"
 license = { text = "Apache-2.0" }
