@@ -5,13 +5,14 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 import yaml
 from pydantic import BaseModel, Field
 
 from omniforensix.core.hashing import FileHashDigest
 from omniforensix.plugins.base import ArtifactRecord
 
-URL_DOMAIN_REGEX = re.compile(r"https?://([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", re.IGNORECASE)
+URL_TOKEN_REGEX = re.compile(r"https?://[^\s\"'<>]+", re.IGNORECASE)
 
 
 class IoCWatchlist(BaseModel):
@@ -38,7 +39,7 @@ class IoCMatch(BaseModel):
 
 DEFAULT_IOC_WATCHLIST = IoCWatchlist(
     feed_name="Built-in Stalkerware & Phishing Baseline",
-    malicious_domains={"c2-stalker-sync.net", "mspy-update-portal.org", "verify-bank-alert.top"},
+    malicious_domains={"c2.example.com", "tracker.example.net", "phishing.example.org"},
     malicious_ips={"198.51.100.214", "203.0.113.88"},
     stalkerware_packages={
         "com.mspy.tracker",
@@ -47,7 +48,7 @@ DEFAULT_IOC_WATCHLIST = IoCWatchlist(
         "org.stalkerware.hiddenagent",
     },
     malicious_sha256={
-        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855_bad"
+        "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
     },
 )
 
@@ -92,7 +93,7 @@ def scan_artifacts_for_iocs(
                     )
                 )
 
-    # 2. Check artifact attributes (packages, domains, SMS links, IP addresses)
+    # 2. Check artifact attributes (packages, domains, SMS/chat links, IP addresses)
     for rec in records:
         attrs = rec.attributes
         pkg = str(attrs.get("package_name") or attrs.get("bundle_id") or "").lower()
@@ -123,16 +124,17 @@ def scan_artifacts_for_iocs(
                 )
             )
 
-        # Extract URLs embedded inside SMS/iMessage bodies
+        # Extract URLs embedded inside message bodies using standard urllib.parse.urlparse
         body = str(attrs.get("body") or "")
-        for url_match in URL_DOMAIN_REGEX.finditer(body):
-            extracted_domain = url_match.group(1).lower()
-            if extracted_domain in active_watchlist.malicious_domains:
+        for url_match in URL_TOKEN_REGEX.finditer(body):
+            candidate_url = url_match.group(0).rstrip(".,;)")
+            parsed_host = (urlparse(candidate_url).hostname or "").lower()
+            if parsed_host and parsed_host in active_watchlist.malicious_domains:
                 matches.append(
                     IoCMatch(
                         severity="HIGH",
                         ioc_type="sms_phishing_domain",
-                        matched_indicator=extracted_domain,
+                        matched_indicator=parsed_host,
                         source_plugin=rec.plugin_name,
                         source_file=rec.source_file,
                         record_id=rec.record_id,
